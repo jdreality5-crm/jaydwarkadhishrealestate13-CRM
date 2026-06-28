@@ -349,6 +349,28 @@ tbody td{padding:10px 14px;font-size:13px;vertical-align:middle;}
     <div class="pc">
       <div id="ps-dashboard" class="ps on">
         <div class="sg" id="d-stats"></div>
+        <div id="d-calendar-section" style="margin-bottom:20px">
+          <div style="background:#fff;border-radius:var(--rad);border:1px solid var(--bd);box-shadow:var(--sh);overflow:hidden">
+            <div style="padding:14px 18px;border-bottom:1px solid var(--bd);background:#fafbfc;display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:14px;font-weight:700">📅 Calendar View</div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <button onclick="calPrev()" style="background:var(--bg2);border:1px solid var(--bd);border-radius:7px;padding:4px 10px;cursor:pointer;font-size:13px">‹</button>
+                <span id="cal-month-label" style="font-size:13px;font-weight:700;color:var(--dk)"></span>
+                <button onclick="calNext()" style="background:var(--bg2);border:1px solid var(--bd);border-radius:7px;padding:4px 10px;cursor:pointer;font-size:13px">›</button>
+              </div>
+            </div>
+            <div id="d-calendar" style="padding:14px"></div>
+          </div>
+        </div>
+        <div id="cal-leads-panel" style="display:none;margin-bottom:20px">
+          <div style="background:#fff;border-radius:var(--rad);border:1.5px solid var(--p);box-shadow:var(--sh);overflow:hidden">
+            <div style="padding:12px 18px;border-bottom:1px solid var(--bd);background:var(--pl);display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:14px;font-weight:700;color:var(--p)" id="cal-panel-title">Leads</div>
+              <button onclick="document.getElementById('cal-leads-panel').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--p)">✕</button>
+            </div>
+            <div id="cal-leads-list" style="padding:14px;max-height:340px;overflow-y:auto"></div>
+          </div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
           <div><div style="font-size:14px;font-weight:700;margin-bottom:10px">🔔 Today's Follow-ups</div><div id="d-pri"></div></div>
           <div><div style="font-size:14px;font-weight:700;margin-bottom:10px">📊 Pipeline</div><div id="d-pipe"></div></div>
@@ -688,12 +710,12 @@ function renderDash(){
   const ov=AL.filter(l=>l.next_call&&l.next_call<td&&l.status!=='Closed'&&l.status!=='Lost').length;
   const tfu=AL.filter(l=>l.next_call===td&&l.status!=='Closed'&&l.status!=='Lost').length;
   document.getElementById('d-stats').innerHTML=`
-    <div class="sc b"><div class="sc-ico">📋</div><div class="sc-v">${tot}</div><div class="sc-l">Total Leads</div></div>
-    <div class="sc g"><div class="sc-ico">✅</div><div class="sc-v">${cl}</div><div class="sc-l">Deals Closed</div></div>
+    <div class="sc o"><div class="sc-ico">📞</div><div class="sc-v">${tfu}</div><div class="sc-l">Today's Call</div></div>
     <div class="sc b"><div class="sc-ico">🔄</div><div class="sc-v">${act}</div><div class="sc-l">Active</div></div>
+    <div class="sc r"><div class="sc-ico">⚠️</div><div class="sc-v">${ov}</div><div class="sc-l">Overdue</div></div>
     <div class="sc r"><div class="sc-ico">❌</div><div class="sc-v">${ls}</div><div class="sc-l">Lost</div></div>
-    <div class="sc o"><div class="sc-ico">⏰</div><div class="sc-v">${tfu}</div><div class="sc-l">Today's FU</div></div>
-    <div class="sc r"><div class="sc-ico">⚠️</div><div class="sc-v">${ov}</div><div class="sc-l">Overdue</div></div>`;
+    <div class="sc b"><div class="sc-ico">📋</div><div class="sc-v">${tot}</div><div class="sc-l">Total Lead</div></div>`;
+  renderCalendarView();
   const stages=['New','Active','Warm','Follow Up','Site Visit','Negotiation','Closed','Lost'];
   const stC=['#2563eb','#10b981','#f97316','#d946ef','#f59e0b','#8b5cf6','#059669','#ef4444'];
   document.getElementById('d-pipe').innerHTML=`<div class="rc" style="margin:0">${stages.map((s,i)=>{const cnt=AL.filter(l=>l.status===s).length;const pct=tot?Math.round(cnt/tot*100):0;return`<div class="br"><div class="br-l">${s}</div><div class="br-t"><div class="br-f" style="width:${pct}%;background:${stC[i]}"></div></div><div class="br-v">${cnt}</div></div>`;}).join('')}</div>`;
@@ -801,174 +823,4 @@ function openEdit(id){
   document.getElementById('e-assign').value=l.assign||CU?.email||'';
   document.getElementById('e-status').value=l.status||'New';
   document.getElementById('e-dr').value=l.dead_reason||'';
-  document.getElementById('e-ds').value=l.dead_sub||'';
-  document.getElementById('e-nd').value=l.next_call||'';
-  document.getElementById('e-nt').value=l.next_time||'';
-  document.getElementById('e-cmt').value='';toggleDead();
-  document.getElementById('e-img').value='';
-  const eimg=document.getElementById('e-img-prev');
-  if(l.property_image){eimg.src=l.property_image;eimg.classList.add('on');}else{eimg.src='';eimg.classList.remove('on');}
-  const log=document.getElementById('e-log');
-  const cmts=l.comments||[];
-  log.innerHTML=cmts.length?cmts.map(c=>`<div class="ce"><span class="ce-by">${uname(c.by)}</span><span class="ce-dt">${c.dt}</span><div class="ce-t">${c.text}</div></div>`).join(''):'<div style="color:var(--tx3);text-align:center;padding:10px;font-size:12px">No comments yet.</div>';
-  log.scrollTop=log.scrollHeight;
-  document.getElementById('edit-ov').classList.add('on');
-}
-function closeEdit(){document.getElementById('edit-ov').classList.remove('on');editId=null;editImgData='';}
-function toggleDead(){document.getElementById('dead-row').style.display=document.getElementById('e-status').value==='Lost'?'grid':'none';}
-async function saveLead(){
-  const btn=document.getElementById('sv-btn');btn.disabled=true;btn.textContent='Saving...';
-  const l=AL.find(x=>x.id===editId);
-  if(!l){btn.disabled=false;btn.textContent='Update Lead';return;}
-  const nc=document.getElementById('e-cmt').value.trim();
-  const comments=[...(l.comments||[])];if(nc)comments.push({by:CU.email,dt:ts(),text:nc});
-  const updated={...l,assign:document.getElementById('e-assign').value||CU.email,status:document.getElementById('e-status').value,dead_reason:document.getElementById('e-dr').value,dead_sub:document.getElementById('e-ds').value,next_call:document.getElementById('e-nd').value,next_time:document.getElementById('e-nt').value,property_image:editImgData,comments};
-  const ok=await dbSL(updated);
-  if(ok){const idx=AL.findIndex(x=>x.id===editId);if(idx>-1)AL[idx]=updated;closeEdit();renderEnq();renderDash();checkNotifs();}
-  else alert('Error saving. Check internet connection.');
-  btn.disabled=false;btn.textContent='Update Lead';
-}
-
-function openView(id){
-  const l=AL.find(x=>x.id===id);if(!l)return;viewId=id;
-  document.getElementById('view-title').textContent=l.name;
-  document.getElementById('view-sub').textContent=`Added ${l.created_at?new Date(l.created_at).toLocaleDateString('en-IN'):''}`;
-  const vimg=document.getElementById('v-img');
-  if(l.property_image){vimg.src=l.property_image;vimg.classList.add('on');}else{vimg.src='';vimg.classList.remove('on');}
-  document.getElementById('v-phone').textContent=l.phone||'—';
-  document.getElementById('v-email').textContent=l.email||'—';
-  document.getElementById('v-source').textContent=l.source||'—';
-  document.getElementById('v-bhk').textContent=l.bhk||'—';
-  document.getElementById('v-budget').textContent=l.budget||'—';
-  document.getElementById('v-area').textContent=l.area||'—';
-  document.getElementById('v-status').innerHTML=`<span class="sp ${scls(l.status)}">${l.status}</span>`;
-  document.getElementById('v-agent').textContent=uname(l.assign);
-  document.getElementById('v-nf').textContent=l.next_call?l.next_call+(l.next_time?' '+fmt12(l.next_time):''):'—';
-  const log=document.getElementById('v-log');
-  const cmts=l.comments||[];
-  log.innerHTML=cmts.length?cmts.map(c=>`<div class="ce"><span class="ce-by">${uname(c.by)}</span><span class="ce-dt">${c.dt}</span><div class="ce-t">${c.text}</div></div>`).join(''):'<div style="color:var(--tx3);text-align:center;padding:10px;font-size:12px">No comments yet.</div>';
-  document.getElementById('view-ov').classList.add('on');
-}
-function closeView(){document.getElementById('view-ov').classList.remove('on');viewId=null;}
-
-function waReminder(id){
-  const l=AL.find(x=>x.id===id);if(!l){alert('Lead not found.');return;}
-  let phone=(l.phone||'').replace(/\D/g,'');
-  if(!phone){alert('No mobile number for this lead.');return;}
-  if(phone.length===10)phone='91'+phone;
-  const fu=l.next_call?` on ${l.next_call}${l.next_time?' at '+fmt12(l.next_time):''}`:'';
-  const msg=`Hi ${l.name}, this is a follow-up reminder from Jay Dwarkadhish Real Estate regarding your enquiry${fu}. Please let us know a good time to talk. Thank you!`;
-  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,'_blank');
-}
-
-function openNewEnq(){
-  populateDDs();
-  ['n-nm','n-ph','n-em','n-bgt','n-area','n-cmt','n-nd','n-nt'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('n-src').value='Magicbricks';document.getElementById('n-bhk').value='';
-  document.getElementById('n-ag').value=CU?.email||'';
-  document.getElementById('n-img').value='';newImgData='';
-  const nimg=document.getElementById('n-img-prev');nimg.src='';nimg.classList.remove('on');
-  document.getElementById('new-ov').classList.add('on');
-}
-function closeNew(){document.getElementById('new-ov').classList.remove('on');}
-async function saveNew(){
-  const name=document.getElementById('n-nm').value.trim(),phone=document.getElementById('n-ph').value.trim();
-  if(!name||!phone){alert('Name and mobile are required.');return;}
-  const btn=document.getElementById('sv-new-btn');btn.disabled=true;btn.textContent='Saving...';
-  const cmt=document.getElementById('n-cmt').value.trim();
-  const assignTo=document.getElementById('n-ag').value||CU?.email||'';
-  const lead={id:uid(),name,phone,email:document.getElementById('n-em').value.trim(),source:document.getElementById('n-src').value,bhk:document.getElementById('n-bhk').value,budget:document.getElementById('n-bgt').value.trim(),area:document.getElementById('n-area').value.trim(),assign:assignTo,status:'New',dead_reason:'',dead_sub:'',next_call:document.getElementById('n-nd').value,next_time:document.getElementById('n-nt').value,property_image:newImgData,comments:cmt?[{by:CU.email,dt:ts(),text:cmt}]:[]};
-  const ok=await dbSL(lead);
-  if(ok){AL=[lead,...AL];populateDDs();closeNew();renderEnq();renderDash();checkNotifs();}
-  else alert('Error saving. Check internet connection.');
-  btn.disabled=false;btn.textContent='Add Enquiry';
-}
-
-function openProfile(){
-  document.getElementById('pro-nm').value=CU.name;document.getElementById('pro-rl').value=CU.role||'Agent';document.getElementById('pro-em').value=CU.email;
-  ['p-old','p-new','p-cnf'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('p-msg').style.display='none';
-  document.getElementById('prof-av').innerHTML=`<div style="width:76px;height:76px;border-radius:18px;background:${col(CU.email)};color:#fff;font-weight:800;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto">${ini(CU.name)}</div>`;
-  document.getElementById('prof-ov').classList.add('on');
-}
-function closeProf(){document.getElementById('prof-ov').classList.remove('on');}
-async function changePw(){
-  const old=document.getElementById('p-old').value,nw=document.getElementById('p-new').value.trim(),cnf=document.getElementById('p-cnf').value.trim();
-  if(!old||!nw||!cnf){showMsg('p-msg','Please fill all fields.',false);return;}
-  if(CU.password!==old){showMsg('p-msg','Current password incorrect.',false);return;}
-  if(nw.length<6){showMsg('p-msg','Min. 6 characters.',false);return;}
-  if(nw!==cnf){showMsg('p-msg','Passwords do not match.',false);return;}
-  const ok=await dbSU({...CU,password:nw});
-  if(ok){CU.password=nw;showMsg('p-msg','✅ Password changed!',true);}
-  else showMsg('p-msg','Error saving.',false);
-}
-
-function openAddMember(){editMem=null;document.getElementById('mem-mo-h').textContent='Add Team Member';['m-nm','m-em','m-pw','m-rl'].forEach(i=>document.getElementById(i).value='');document.getElementById('m-tp').value='agent';document.getElementById('m-msg').style.display='none';document.getElementById('mem-ov').classList.add('on');}
-function editMemF(email){const u=AU.find(x=>x.email===email);if(!u)return;editMem=email;document.getElementById('mem-mo-h').textContent='Edit Member';document.getElementById('m-nm').value=u.name;document.getElementById('m-em').value=u.email;document.getElementById('m-pw').value='';document.getElementById('m-rl').value=u.role||'';document.getElementById('m-tp').value=u.type||'agent';document.getElementById('m-msg').style.display='none';document.getElementById('mem-ov').classList.add('on');}
-function closeMem(){document.getElementById('mem-ov').classList.remove('on');editMem=null;}
-async function saveMem(){
-  const name=document.getElementById('m-nm').value.trim(),email=document.getElementById('m-em').value.trim().toLowerCase(),pw=document.getElementById('m-pw').value,role=document.getElementById('m-rl').value.trim()||'Agent',type=document.getElementById('m-tp').value;
-  if(!name||!email){showMsg('m-msg','Name and email required.',false);return;}
-  if(!editMem&&!pw){showMsg('m-msg','Password required.',false);return;}
-  if(pw&&pw.length<6){showMsg('m-msg','Min. 6 characters.',false);return;}
-  if(!editMem&&AU.find(u=>u.email===email)){showMsg('m-msg','Email already exists.',false);return;}
-  let obj;
-  if(editMem){obj={...AU.find(u=>u.email===editMem),name,email,role,type};if(pw)obj.password=pw;}
-  else obj={id:uid(),name,email,password:pw,role,type};
-  const ok=await dbSU(obj);
-  if(ok){AU=await dbU();closeMem();renderAdmin();populateDDs();}
-  else showMsg('m-msg','Error saving.',false);
-}
-async function delMem(email){const u=AU.find(x=>x.email===email);if(!confirm(`Remove ${u?.name||email}?`))return;await dbDU(email);AU=await dbU();renderAdmin();populateDDs();}
-function openRst(email){rstEmail=email;const u=AU.find(x=>x.email===email);document.getElementById('rst-for').textContent='For: '+(u?u.name:email);['r-pw','r-cnf'].forEach(i=>document.getElementById(i).value='');document.getElementById('r-msg').style.display='none';document.getElementById('rst-ov').classList.add('on');}
-function closeRst(){document.getElementById('rst-ov').classList.remove('on');rstEmail=null;}
-async function doRst(){
-  const pw=document.getElementById('r-pw').value.trim(),cnf=document.getElementById('r-cnf').value.trim();
-  if(!pw||!cnf){showMsg('r-msg','Fill both fields.',false);return;}
-  if(pw.length<6){showMsg('r-msg','Min. 6 chars.',false);return;}
-  if(pw!==cnf){showMsg('r-msg','Passwords do not match.',false);return;}
-  const u=AU.find(x=>x.email===rstEmail);if(!u)return;
-  const ok=await dbSU({...u,password:pw});
-  if(ok){showMsg('r-msg','✅ Password reset!',true);setTimeout(closeRst,1500);}
-  else showMsg('r-msg','Error.',false);
-}
-
-function exportCSV(){
-  if(!AL.length){alert('No leads.');return;}
-  const cols=['Name','Phone','Email','Source','BHK','Budget','Area','Assigned To','Status','Next Follow-up','Time','Lost Reason','Comments'];
-  const rows=AL.map(l=>[l.name,l.phone,l.email||'',l.source||'',l.bhk||'',l.budget||'',l.area||'',uname(l.assign),l.status,l.next_call||'',l.next_time?fmt12(l.next_time):'',l.dead_reason||'',(l.comments||[]).map(c=>`[${c.dt} ${uname(c.by)}]: ${c.text}`).join(' | ')].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(','));
-  dlFile('JD_CRM_Leads.csv','\uFEFF'+cols.map(c=>`"${c}"`).join(',')+'\n'+rows.join('\n'),'text/csv;charset=utf-8;');
-}
-function exportExcel(){
-  if(!AL.length){alert('No leads.');return;}
-  const esc=v=>(v||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const rows=AL.map(l=>`<tr><td>${esc(l.name)}</td><td>${esc(l.phone)}</td><td>${esc(l.email||'')}</td><td>${esc(l.source||'')}</td><td>${esc(l.bhk||'')}</td><td>${esc(l.budget||'')}</td><td>${esc(l.area||'')}</td><td>${esc(uname(l.assign))}</td><td>${esc(l.status)}</td><td>${esc(l.next_call||'')}</td><td>${esc(l.next_time?fmt12(l.next_time):'')}</td><td>${esc(l.dead_reason||'')}</td><td>${esc((l.comments||[]).map(c=>`[${c.dt}] ${uname(c.by)}: ${c.text}`).join(' | '))}</td></tr>`).join('');
-  dlFile('JD_CRM_Leads.xls',`<html><head><meta charset="UTF-8"><style>th{background:#0f172a;color:white;padding:8px;}td{padding:6px;border:1px solid #e2e8f0;}tr:nth-child(even) td{background:#f8fafc;}</style></head><body><table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Source</th><th>BHK</th><th>Budget</th><th>Area</th><th>Agent</th><th>Status</th><th>Next FU</th><th>Time</th><th>Lost Reason</th><th>Comments</th></tr></thead><tbody>${rows}</tbody></table></body></html>`,'application/vnd.ms-excel');
-}
-async function gBackup(){
-  const bk={exported:new Date().toISOString(),leads:AL,users:AU,version:'6.0'};
-  dlFile('JD_CRM_Backup_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(bk,null,2),'application/json');
-  alert('✅ Backup downloaded!\nAb Google Drive pe upload karo.');
-}
-function dlFile(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},200);}
-
-['edit-ov','new-ov','view-ov','prof-ov','mem-ov','rst-ov'].forEach(id=>{document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById(id).classList.remove('on');});});
-
-async function initApp(){
-  try{
-    AU=await dbU();
-    if(!AU.find(u=>u.email==='admin@jaydwarkadhish.com')){
-      await dbSU({id:'admin001',name:'Admin',email:'admin@jaydwarkadhish.com',password:'Admin@123',role:'Admin',type:'admin'});
-      AU=await dbU();
-    }
-    let sessEmail=null;
-    try{const raw=localStorage.getItem('jdcrm_v6');if(raw){const s=JSON.parse(raw);if(s&&s.email&&s.ts&&(Date.now()-s.ts)<7*24*60*60*1000)sessEmail=s.email;else localStorage.removeItem('jdcrm_v6');}}catch(e){localStorage.removeItem('jdcrm_v6');}
-    if(sessEmail){const user=AU.find(u=>u.email===sessEmail);if(user){CU=user;localStorage.setItem('jdcrm_v6',JSON.stringify({email:user.email,ts:Date.now()}));await startApp();return;}}
-  }catch(e){console.error('Init error:',e);}
-  document.getElementById('ld').classList.add('gone');
-  document.getElementById('login').classList.add('show');
-}
-initApp();
-</script>
-</body>
-</html>
+  do
