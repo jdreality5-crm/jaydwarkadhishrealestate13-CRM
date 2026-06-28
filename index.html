@@ -42,12 +42,18 @@
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;-webkit-tap-highlight-color:transparent;}
 
 /* LOADER */
-#ld{position:fixed;inset:0;background:var(--grad2);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .25s;}
+#ld{position:fixed;inset:0;background:var(--grad2);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .25s;}
 #ld.gone{opacity:0;pointer-events:none;}
-.ld-ring{width:56px;height:56px;border:3px solid rgba(255,255,255,.1);border-top-color:#818cf8;border-radius:50%;animation:spin .8s linear infinite;}
+.ld-logo{font-size:48px;margin-bottom:4px;filter:drop-shadow(0 4px 20px rgba(99,102,241,.5));}
+.ld-ring{width:48px;height:48px;border:3px solid rgba(255,255,255,.1);border-top-color:#818cf8;border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.ld-txt{color:#fff;font-size:15px;font-weight:700;letter-spacing:.5px;}
-.ld-sub{color:rgba(255,255,255,.35);font-size:12px;}
+.ld-txt{color:#fff;font-size:16px;font-weight:800;letter-spacing:.3px;}
+.ld-sub{color:rgba(255,255,255,.4);font-size:12px;font-weight:500;}
+.ld-bar-wrap{width:200px;height:3px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;}
+.ld-bar{height:100%;background:linear-gradient(90deg,#818cf8,#a78bfa);border-radius:4px;width:0%;animation:ldprog 3s ease-out forwards;}
+@keyframes ldprog{0%{width:0%;}60%{width:70%;}85%{width:85%;}100%{width:92%;}}
+.ld-retry{display:none;margin-top:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);padding:8px 20px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;}
+.ld-retry:hover{background:rgba(255,255,255,.2);color:#fff;}
 
 /* NOTIFICATION BAR */
 #nb{position:fixed;top:0;left:0;right:0;z-index:8000;display:none;background:linear-gradient(90deg,#dc2626,#ef4444);color:#fff;padding:11px 18px;font-size:13px;font-weight:600;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(220,38,38,.4);}
@@ -396,7 +402,14 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
 </style>
 </head>
 <body>
-<div id="ld"><div class="ld-ring"></div><div class="ld-txt">Jay Dwarkadhish CRM</div><div class="ld-sub">v8 — Connecting...</div></div>
+<div id="ld">
+  <div class="ld-logo">🏠</div>
+  <div class="ld-ring"></div>
+  <div class="ld-txt">Jay Dwarkadhish CRM</div>
+  <div class="ld-sub" id="ld-sub-txt">v8 — Connecting...</div>
+  <div class="ld-bar-wrap"><div class="ld-bar" id="ld-bar"></div></div>
+  <button class="ld-retry" id="ld-retry" onclick="location.reload()">↺ Reload Page</button>
+</div>
 <div id="nb"><div class="nb-dot"></div><span id="nb-txt">⏰ Follow-up alert!</span><button class="nb-x" onclick="closeNB()">✕</button></div>
 <div id="sy">☁️ Synced</div>
 
@@ -855,6 +868,32 @@ function changeProfileImg(input){
   reader.readAsDataURL(f);
 }
 
+// ---- LOADER STATUS MESSAGES ----
+const _ldMsgs=['Connecting to cloud...','Loading your data...','Almost ready...','Syncing...'];
+let _ldIdx=0,_ldMsgTimer=null,_ldRetryTimer=null;
+function startLdMessages(){
+  _ldMsgTimer=setInterval(()=>{
+    _ldIdx=(_ldIdx+1)%_ldMsgs.length;
+    const el=document.getElementById('ld-sub-txt');
+    if(el)el.textContent=_ldMsgs[_ldIdx];
+  },1800);
+  // Agar 5 sec mein load nahi hua to "Reload" button dikhao
+  _ldRetryTimer=setTimeout(()=>{
+    const btn=document.getElementById('ld-retry');
+    if(btn&&document.getElementById('ld')&&!document.getElementById('ld').classList.contains('gone')){
+      btn.style.display='block';
+      const el=document.getElementById('ld-sub-txt');
+      if(el)el.textContent='Taking longer than usual...';
+    }
+  },5000);
+}
+function stopLdMessages(){
+  clearInterval(_ldMsgTimer);clearTimeout(_ldRetryTimer);
+  const btn=document.getElementById('ld-retry');if(btn)btn.style.display='none';
+}
+// Start loader messages immediately
+startLdMessages();
+
 // ---- OPTIMIZED DB LAYER v8 ----
 // Request deduplication: prevent duplicate parallel fetches
 let _fetchUsersPromise=null,_fetchLeadsPromise=null;
@@ -976,10 +1015,20 @@ async function doLogin(){
   const errEl=document.getElementById('li-err');const btn=document.getElementById('li-btn');
   errEl.style.display='none';btn.disabled=true;btn.textContent='Signing in...';
   try{
-    // Use cached AU if available, else fetch fresh
-    const users=AU.length?AU:await dbU();
+    // Use cached AU if available (prefetched during login page load), else fetch with timeout
+    let users=AU.length?AU:null;
+    if(!users){
+      try{users=await withTimeout(dbU(),6000);}
+      catch(e){
+        errEl.textContent='❌ Connection timeout. Check internet & retry.';
+        errEl.style.display='block';btn.disabled=false;btn.textContent='Sign In →';return;
+      }
+    }
     const user=users.find(u=>u.email===email);
-    if(!user||user.password!==pw){errEl.style.display='block';btn.disabled=false;btn.textContent='Sign In →';return;}
+    if(!user||user.password!==pw){
+      errEl.textContent='❌ Invalid email or password.';
+      errEl.style.display='block';btn.disabled=false;btn.textContent='Sign In →';return;
+    }
     CU=user;AU=users;
     localStorage.setItem('jdcrm_v7',JSON.stringify({email:user.email,ts:Date.now()}));
     await startApp();
@@ -993,8 +1042,11 @@ function doLogout(){CU=null;localStorage.removeItem('jdcrm_v7');document.getElem
 async function startApp(){
   document.getElementById('login').classList.remove('show');
   document.getElementById('app').style.display='block';
-  // Parallel load — users already fetched during initApp, leads in parallel
-  AL=await dbL();
+  // Load with timeout safety
+  try{
+    const {users,leads}=await loadWithTimeout();
+    AU=users;AL=leads;
+  }catch(e){console.warn('startApp load warn:',e);}
   PROPS=loadProps();
   setAv(document.getElementById('sb-av'),CU);
   setAv(document.getElementById('tb-av'),CU);
@@ -1006,8 +1058,8 @@ async function startApp(){
   pg('dashboard',document.getElementById('ni-dashboard'));
   setupRT();
   if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
-  setTimeout(checkNotifs,800); // reduced from 1200ms → 800ms
-  document.getElementById('ld').classList.add('gone');
+  setTimeout(checkNotifs,800);
+  document.getElementById('ld').classList.add('gone');stopLdMessages();
 }
 
 function populateDDs(){
@@ -1591,20 +1643,89 @@ window.addEventListener('offline',()=>{showNB('⚠️ You are offline. Changes w
 });
 
 async function initApp(){
+  // STEP 1: Session check karo INSTANTLY from localStorage — Supabase ka wait mat karo
+  let sessEmail=null;
   try{
-    // Parallel fetch for faster init
-    const [usersData] = await Promise.all([dbU()]);
-    AU = usersData;
-    if(!AU.find(u=>u.email==='admin@jaydwarkadhish.com')){
-      await dbSU({id:'admin001',name:'Admin',email:'admin@jaydwarkadhish.com',password:'Admin@123',role:'Admin',type:'admin'});
-      AU=await dbU();
+    const raw=localStorage.getItem('jdcrm_v7');
+    if(raw){
+      const s=JSON.parse(raw);
+      if(s&&s.email&&s.ts&&(Date.now()-s.ts)<7*24*60*60*1000) sessEmail=s.email;
+      else localStorage.removeItem('jdcrm_v7');
     }
-    let sessEmail=null;
-    try{const raw=localStorage.getItem('jdcrm_v7');if(raw){const s=JSON.parse(raw);if(s&&s.email&&s.ts&&(Date.now()-s.ts)<7*24*60*60*1000)sessEmail=s.email;else localStorage.removeItem('jdcrm_v7');}}catch(e){localStorage.removeItem('jdcrm_v7');}
-    if(sessEmail){const user=AU.find(u=>u.email===sessEmail);if(user){CU=user;localStorage.setItem('jdcrm_v7',JSON.stringify({email:user.email,ts:Date.now()}));await startApp();return;}}
-  }catch(e){console.error('Init error:',e);}
-  document.getElementById('ld').classList.add('gone');
+  }catch(e){localStorage.removeItem('jdcrm_v7');}
+
+  // STEP 2: Agar session hai to login screen skip karo, app dikhao with cached/empty data
+  if(sessEmail){
+    // App turant show karo — Supabase data baad mein load hoga background mein
+    CU={email:sessEmail,name:sessEmail.split('@')[0],type:'agent',role:'Agent'};
+    document.getElementById('login').classList.remove('show');
+    document.getElementById('app').style.display='block';
+    document.getElementById('sb-un').textContent='Loading...';
+    document.getElementById('tb-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    document.getElementById('ni-admin').style.display='none';
+    populateDDs();
+    pg('dashboard',document.getElementById('ni-dashboard'));
+    document.getElementById('ld').classList.add('gone');stopLdMessages();
+
+    // Background mein actual data load karo with timeout
+    loadWithTimeout().then(({users,leads})=>{
+      AU=users;AL=leads;
+      const realUser=AU.find(u=>u.email===sessEmail);
+      if(!realUser){
+        // User nahi mila — logout
+        doLogout();return;
+      }
+      CU=realUser;
+      localStorage.setItem('jdcrm_v7',JSON.stringify({email:realUser.email,ts:Date.now()}));
+      setAv(document.getElementById('sb-av'),CU);
+      setAv(document.getElementById('tb-av'),CU);
+      document.getElementById('sb-un').textContent=CU.name;
+      document.getElementById('sb-ur').textContent=CU.role||'Agent';
+      document.getElementById('ni-admin').style.display=CU.type==='admin'?'flex':'none';
+      populateDDs();
+      refreshPg();
+      checkNotifs();
+      setupRT();
+    }).catch(e=>{
+      console.error('Background load failed:',e);
+      // Koi crash nahi — user already app mein hai
+    });
+    return;
+  }
+
+  // STEP 3: Koi session nahi — login page dikhao, Supabase prefetch start karo background mein
+  document.getElementById('ld').classList.add('gone');stopLdMessages();
   document.getElementById('login').classList.add('show');
+  // Background mein users prefetch karo taaki login fast ho
+  dbU().then(u=>{AU=u;}).catch(()=>{});
+}
+
+// Timeout wrapper — agar Supabase 8 sec mein jawab nahi deta to error throw karo
+function withTimeout(promise, ms=8000){
+  return Promise.race([
+    promise,
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),ms))
+  ]);
+}
+
+async function loadWithTimeout(){
+  try{
+    const [users,leads]=await Promise.all([
+      withTimeout(dbU(),8000),
+      withTimeout(dbL(),8000)
+    ]);
+    return {users,leads};
+  }catch(e){
+    // Timeout ya error — empty data return karo
+    console.warn('Load timeout, retrying once...',e);
+    // Ek baar aur try karo
+    try{
+      const [users,leads]=await Promise.all([dbU(),dbL()]);
+      return {users,leads};
+    }catch(e2){
+      return {users:AU||[],leads:AL||[]};
+    }
+  }
 }
 initApp();
 </script>
