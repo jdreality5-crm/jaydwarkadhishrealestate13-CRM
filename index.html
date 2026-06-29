@@ -2043,7 +2043,7 @@ async function supabaseBackup(){
     const fileName='backups/JD_CRM_Leads_'+new Date().toISOString().slice(0,19).replace(/:/g,'-')+'.xlsx';
     statusEl.textContent='📤 Uploading to Supabase Storage...';
     // Upload to Supabase Storage bucket "crm-backups"
-    const {data,error}=await sb.storage.from('crm-backups').upload(fileName,blob,{contentType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',upsert:true});
+    const {data,error}=await sb.storage.from('CRM-BACKUP').upload(fileName,blob,{contentType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',upsert:true});
     if(error){
       // Bucket may not exist — show helpful message
       if(error.message&&error.message.includes('Bucket not found')){
@@ -2063,7 +2063,7 @@ async function supabaseBackup(){
       return;
     }
     // Get public URL
-    const {data:urlData}=sb.storage.from('crm-backups').getPublicUrl(fileName);
+    const {data:urlData}=sb.storage.from('CRM-BACKUP').getPublicUrl(fileName);
     statusEl.style.color='var(--g)';statusEl.textContent='✅ Backup saved to Supabase Storage!';
     linksEl.innerHTML=`<a href="${urlData.publicUrl}" download target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:var(--gl);color:var(--g);border:1px solid #a7f3d0;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;text-decoration:none;margin-top:4px">⬇️ Download Backup File</a>`;
   }catch(e){
