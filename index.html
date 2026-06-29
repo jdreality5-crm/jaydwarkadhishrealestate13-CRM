@@ -92,10 +92,10 @@ input::-webkit-inner-spin-button { visibility:hidden!important;display:none!impo
 .ll::after{content:'';position:absolute;bottom:-80px;left:-80px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.15) 0%,transparent 70%);}
 .ll-logo{width:160px;margin-bottom:28px;filter:drop-shadow(0 4px 24px rgba(99,102,241,.5));}
 .ll-badge{background:rgba(99,102,241,.2);border:1px solid rgba(129,140,248,.3);color:#a5b4fc;border-radius:24px;padding:5px 16px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:28px;}
-.ll-h{font-size:32px;font-weight:900;color:#fff;text-align:center;line-height:1.15;margin-bottom:10px;animation:llNamePulse 3s ease-in-out infinite;}
-.ll-h span{background:linear-gradient(135deg,#818cf8,#a78bfa,#4f46e5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:llSpanShine 3s ease-in-out infinite;}
-@keyframes llNamePulse{0%,100%{text-shadow:0 0 20px rgba(129,140,248,.0);}50%{text-shadow:0 0 20px rgba(129,140,248,.4),0 0 40px rgba(167,139,250,.2);}}
-@keyframes llSpanShine{0%,100%{filter:brightness(1);}50%{filter:brightness(1.3);}}
+.ll-h{font-size:32px;font-weight:900;color:#fff;text-align:center;line-height:1.15;margin-bottom:10px;}
+.ll-h span{background:linear-gradient(135deg,#818cf8,#a78bfa,#c4b5fd,#4f46e5,#818cf8);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:greetShine 3s ease infinite;}
+@keyframes llNamePulse{0%{opacity:1;}100%{opacity:1;}}
+@keyframes llSpanShine{0%{opacity:1;}100%{opacity:1;}}
 .ll-sub{font-size:13px;color:rgba(255,255,255,.4);text-align:center;line-height:1.8;max-width:280px;}
 .ll-addr{margin-top:28px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px 20px;font-size:11px;color:rgba(255,255,255,.4);line-height:2;text-align:center;}
 .ll-stats{display:flex;gap:36px;margin-top:32px;}
@@ -164,7 +164,7 @@ nav{flex:1;padding:8px 8px;}
 .tb-word3{display:inline-block;color:#059669;animation:tbPulse3 3s ease-in-out infinite;animation-delay:.8s;}
 .tb-anim-title::after{content:'';position:absolute;bottom:-3px;left:0;width:100%;height:2px;background:linear-gradient(90deg,#f97316,#4f46e5,#059669);border-radius:2px;animation:tbUnderline 3s ease-in-out infinite;}
 @keyframes greetShine{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
-.tb-greeting-anim{font-size:18px;font-weight:900;letter-spacing:-.2px;color:var(--dk);}
+.tb-greeting-anim{font-size:18px;font-weight:900;letter-spacing:-.2px;background:linear-gradient(135deg,#f97316,#4f46e5,#059669,#7c3aed,#f97316);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:greetShine 4s ease infinite;}
 @keyframes tbPulse2{0%,100%{opacity:1;transform:translateY(0);}33%{transform:translateY(-2px);}66%{transform:translateY(0);}}
 @keyframes tbPulse3{0%,100%{opacity:1;transform:translateY(0);}33%{transform:translateY(-2px);}66%{transform:translateY(0);}}
 @keyframes tbUnderline{0%{background-position:0% 50%;opacity:.7;}50%{background-position:100% 50%;opacity:1;}100%{background-position:0% 50%;opacity:.7;}}
@@ -508,7 +508,10 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
         <button class="hbg" onclick="toggleSB()"><span></span><span></span><span></span></button>
         <!-- LEFT - Hello greeting + motivational quote -->
         <div style="display:flex;flex-direction:column;justify-content:center;gap:1px;">
-          <div id="tb-greeting" class="tb-greeting-anim"></div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="font-size:17px;">👋</span>
+            <div id="tb-greeting" class="tb-greeting-anim"></div>
+          </div>
           <div id="tb-quote" style="font-size:13px;color:var(--p);font-weight:600;max-width:400px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;animation:quoteFade 1s ease-in-out;"></div>
         </div>
       </div>
@@ -573,6 +576,9 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
             </div>
           </div>
         </div>
+
+        <!-- TODAY FOLLOW-UPS PANEL -->
+        <div id="d-pri" style="margin-bottom:12px;"></div>
 
         <!-- INQUIRIES TABLE (below calendar) -->
         <div style="margin-top:8px;">
@@ -2203,18 +2209,22 @@ window.addEventListener('offline',()=>{showNB('⚠️ You are offline. Changes w
 });
 
 // ===== EMERGENCY LOADER BYPASS =====
-// Agar kuch bhi kaam na kare — 1.5 sec mein loader force hide, login dikhao
+// Sirf tab fire karo jab session check bhi fail ho jaaye (network completely dead)
 (function(){
   var _emergencyTimer = setTimeout(function(){
     var ld = document.getElementById('ld');
     var login = document.getElementById('login');
+    var app = document.getElementById('app');
+    // Only show login if app is NOT already visible
     if(ld && !ld.classList.contains('gone')){
       ld.classList.add('gone');
-      if(login && !login.classList.contains('show')){
-        login.classList.add('show');
+      if(app && app.style.display !== 'block'){
+        if(login && !login.classList.contains('show')){
+          login.classList.add('show');
+        }
       }
     }
-  }, 1500);
+  }, 4000);
   window._clearEmergency = function(){ clearTimeout(_emergencyTimer); };
 })();
 
@@ -2245,10 +2255,19 @@ async function initApp(){
 
     // Background mein actual data load karo with timeout
     loadWithTimeout().then(({users,leads})=>{
-      AU=users;AL=leads;
+      // Only update if we actually got data back
+      if(users && users.length > 0) AU=users;
+      if(leads) AL=leads;
       const realUser=AU.find(u=>u.email===sessEmail);
       if(!realUser){
-        // User nahi mila — logout
+        // Agar users empty hain (network fail) to logout mat karo — session valid rakho
+        if(AU.length === 0){
+          console.warn('Users not loaded (network?), keeping session alive');
+          updateGreeting();startQuoteRotation();
+          refreshPg();
+          return;
+        }
+        // User genuinely nahi mila DB mein — logout
         doLogout();return;
       }
       CU=realUser;
@@ -2264,8 +2283,9 @@ async function initApp(){
       checkNotifs();
       setupRT();
     }).catch(e=>{
-      console.error('Background load failed:',e);
-      // Koi crash nahi — user already app mein hai
+      console.error('Background load failed, keeping session alive:',e);
+      // Network fail — user app mein hi rahega, session valid
+      updateGreeting();startQuoteRotation();
     });
     return;
   }
