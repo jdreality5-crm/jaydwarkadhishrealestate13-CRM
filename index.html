@@ -85,7 +85,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .ls-l{font-size:9px;color:rgba(255,255,255,.3);text-align:center;text-transform:uppercase;letter-spacing:1.5px;margin-top:3px;}
 .lr{width:440px;background:#fff;display:flex;align-items:center;justify-content:center;padding:52px 48px 52px 44px;}
 .lr-box{width:100%;}
-.lr-logo{width:200px;display:block;margin-bottom:20px;margin-left:0;}
+.lr-logo{width:200px;display:block;margin-bottom:20px;margin-left:0;margin-top:30px;}
 .lr-h{font-size:26px;font-weight:900;color:var(--dk);margin-bottom:4px;}
 .lr-sub{font-size:13px;color:var(--tx3);margin-bottom:30px;}
 .li-lbl{display:block;font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:6px;letter-spacing:.4px;}
@@ -106,7 +106,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 /* SIDEBAR - WHITE THEME */
 .sb{width:var(--sw);background:#fff;border-right:1px solid var(--bd);border-top:1px solid var(--bd);display:flex;flex-direction:column;position:fixed;inset-y:0;left:0;z-index:400;transition:transform .26s cubic-bezier(.4,0,.2,1);overflow-y:auto;box-shadow:2px 0 16px rgba(79,70,229,.06);}
 .sb::before{display:none;}
-.sb-head{padding:0;border-bottom:1px solid var(--bd);background:#fff;line-height:0;}
+.sb-head{padding:0;border-bottom:1px solid var(--bd);background:#fff;line-height:0;margin-top:-4px;}
 .sb-brand{display:flex;align-items:center;gap:11px;}
 .sb-bicon{width:38px;height:38px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
 .sb-bname{font-size:13px;font-weight:800;color:var(--dk);line-height:1.2;}
@@ -145,7 +145,8 @@ nav{flex:1;padding:8px 8px;}
 .tb-word2{display:inline-block;background:linear-gradient(135deg,#4f46e5,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:tbPulse2 3s ease-in-out infinite;animation-delay:.4s;}
 .tb-word3{display:inline-block;color:#059669;animation:tbPulse3 3s ease-in-out infinite;animation-delay:.8s;}
 .tb-anim-title::after{content:'';position:absolute;bottom:-3px;left:0;width:100%;height:2px;background:linear-gradient(90deg,#f97316,#4f46e5,#059669);border-radius:2px;animation:tbUnderline 3s ease-in-out infinite;}
-@keyframes tbPulse1{0%,100%{opacity:1;transform:translateY(0);}33%{transform:translateY(-2px);opacity:.9;}66%{transform:translateY(0);opacity:1;}}
+@keyframes greetShine{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+.tb-greeting-anim{background:linear-gradient(135deg,#f97316,#4f46e5,#059669,#7c3aed,#f97316);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:greetShine 4s ease infinite;font-size:18px;font-weight:900;letter-spacing:-.2px;}
 @keyframes tbPulse2{0%,100%{opacity:1;transform:translateY(0);}33%{transform:translateY(-2px);}66%{transform:translateY(0);}}
 @keyframes tbPulse3{0%,100%{opacity:1;transform:translateY(0);}33%{transform:translateY(-2px);}66%{transform:translateY(0);}}
 @keyframes tbUnderline{0%{background-position:0% 50%;opacity:.7;}50%{background-position:100% 50%;opacity:1;}100%{background-position:0% 50%;opacity:.7;}}
@@ -489,7 +490,7 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
         <button class="hbg" onclick="toggleSB()"><span></span><span></span><span></span></button>
         <!-- LEFT - Hello greeting + motivational quote -->
         <div style="display:flex;flex-direction:column;justify-content:center;gap:1px;">
-          <div id="tb-greeting" style="font-size:18px;font-weight:800;color:var(--dk);letter-spacing:-.2px;"></div>
+          <div id="tb-greeting" class="tb-greeting-anim"></div>
           <div id="tb-quote" style="font-size:13px;color:var(--p);font-weight:600;max-width:400px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;animation:quoteFade 1s ease-in-out;"></div>
         </div>
       </div>
@@ -522,8 +523,7 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
             <div id="cal-mini-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
             <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);font-size:10px;color:var(--p);font-weight:700;text-align:center" id="cal-mini-info">— follow-ups this month</div>
           </div>
-          <!-- Today's Follow-ups panel (right of calendar) -->
-          <div><div style="font-size:13px;font-weight:800;margin-bottom:8px;color:var(--dk)">🔔 Today's Follow-ups</div><div id="d-pri"></div></div>
+          <!-- Today's Follow-ups panel removed -->
         </div>
 
         <!-- FULL CALENDAR MODAL -->
