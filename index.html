@@ -164,7 +164,7 @@ nav{flex:1;padding:8px 8px;}
 .tb-word3{display:inline-block;color:#059669;animation:tbPulse3 3s ease-in-out infinite;animation-delay:.8s;}
 .tb-anim-title::after{content:'';position:absolute;bottom:-3px;left:0;width:100%;height:2px;background:linear-gradient(90deg,#f97316,#4f46e5,#059669);border-radius:2px;animation:tbUnderline 3s ease-in-out infinite;}
 @keyframes greetShine{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
-.tb-greeting-anim{background:linear-gradient(135deg,#f97316,#4f46e5,#059669,#7c3aed,#f97316);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:greetShine 4s ease infinite;font-size:18px;font-weight:900;letter-spacing:-.2px;}
+.tb-greeting-anim{font-size:18px;font-weight:900;letter-spacing:-.2px;color:var(--dk);}
 @keyframes tbPulse2{0%,100%{opacity:1;transform:translateY(0);}33%{transform:translateY(-2px);}66%{transform:translateY(0);}}
 @keyframes tbPulse3{0%,100%{opacity:1;transform:translateY(0);}33%{transform:translateY(-2px);}66%{transform:translateY(0);}}
 @keyframes tbUnderline{0%{background-position:0% 50%;opacity:.7;}50%{background-position:100% 50%;opacity:1;}100%{background-position:0% 50%;opacity:.7;}}
@@ -1240,7 +1240,7 @@ function updateGreeting(){
   const h=new Date().getHours();
   const g=h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening';
   const firstName=(CU.name||'').split(' ')[0]||CU.name;
-  greetEl.textContent=`👋 Hello, ${firstName}!`;
+  greetEl.textContent=`Hello, ${firstName}!`;
 }
 function startQuoteRotation(){
   const qEl=document.getElementById('tb-quote');
@@ -1313,11 +1313,10 @@ function renderDash(){
   }else{priDiv.innerHTML='<div style="padding:20px;color:var(--tx3);font-size:13px;background:#fff;border-radius:var(--rad);border:1px solid var(--bd);text-align:center">✅ No follow-ups today.</div>';}
 
   const rw=document.getElementById('d-inq-body');
-  // Recent inquiries first (newest), then all others
-  const recentIds=new Set(AL.slice(0,5).map(l=>l.id));
-  const sorted=[...AL.slice(0,5),...AL.slice(5)];
-  rw.innerHTML=sorted.length?sorted.map(l=>`<tr style="${recentIds.has(l.id)?'background:#f8faff;':''}">
-    <td><div class="ln" onclick="openEdit('${l.id}')" style="font-weight:700">${l.name}</div>${recentIds.has(l.id)?'<span style="font-size:9px;font-weight:800;color:var(--p);background:var(--pl);padding:1px 6px;border-radius:8px;margin-top:2px;display:inline-block">RECENT</span>':''}</td>
+  // Show all inquiries sorted by newest first
+  const sorted=[...AL].sort((a,b)=>(b.created||'').localeCompare(a.created||''));
+  rw.innerHTML=sorted.length?sorted.map(l=>`<tr>
+    <td><div class="ln" onclick="openEdit('${l.id}')" style="font-weight:700">${l.name}</div></td>
     <td style="font-size:12px">${l.phone}</td>
     <td>${l.source?`<span class="stag ${STAG[l.source]||'t-jd'}">${l.source}</span>`:'—'}</td>
     <td><span class="sp ${scls(l.status)}">${l.status}</span></td>
