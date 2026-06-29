@@ -443,7 +443,7 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
   <div class="ld-logo">🏠</div>
   <div class="ld-ring"></div>
   <div class="ld-txt">Jay Dwarkadhish CRM</div>
-  <div class="ld-sub" id="ld-sub-txt">v8 — Connecting...</div>
+  <div class="ld-sub" id="ld-sub-txt">Starting up...</div>
   <div class="ld-bar-wrap"><div class="ld-bar" id="ld-bar"></div></div>
   <button class="ld-retry" id="ld-retry" onclick="location.reload()">↺ Reload Page</button>
 </div>
@@ -2203,6 +2203,22 @@ window.addEventListener('offline',()=>{showNB('⚠️ You are offline. Changes w
   const el=document.getElementById(id);if(el)el.addEventListener('click',e=>{if(e.target===e.currentTarget)el.classList.remove('on');});
 });
 
+// ===== EMERGENCY LOADER BYPASS =====
+// Agar kuch bhi kaam na kare — 1.5 sec mein loader force hide, login dikhao
+(function(){
+  var _emergencyTimer = setTimeout(function(){
+    var ld = document.getElementById('ld');
+    var login = document.getElementById('login');
+    if(ld && !ld.classList.contains('gone')){
+      ld.classList.add('gone');
+      if(login && !login.classList.contains('show')){
+        login.classList.add('show');
+      }
+    }
+  }, 1500);
+  window._clearEmergency = function(){ clearTimeout(_emergencyTimer); };
+})();
+
 async function initApp(){
   // STEP 1: Session check karo INSTANTLY from localStorage — Supabase ka wait mat karo
   let sessEmail=null;
@@ -2226,7 +2242,7 @@ async function initApp(){
     document.getElementById('ni-admin').style.display='none';
     populateDDs();
     pg('dashboard',document.getElementById('ni-dashboard'));
-    document.getElementById('ld').classList.add('gone');stopLdMessages();
+    document.getElementById('ld').classList.add('gone');stopLdMessages();if(window._clearEmergency)window._clearEmergency();
 
     // Background mein actual data load karo with timeout
     loadWithTimeout().then(({users,leads})=>{
@@ -2256,7 +2272,7 @@ async function initApp(){
   }
 
   // STEP 3: Koi session nahi — login page dikhao, Supabase prefetch start karo background mein
-  document.getElementById('ld').classList.add('gone');stopLdMessages();
+  document.getElementById('ld').classList.add('gone');stopLdMessages();if(window._clearEmergency)window._clearEmergency();
   document.getElementById('login').classList.add('show');
   // Background mein users prefetch karo taaki login fast ho
   dbU().then(u=>{AU=u;}).catch(()=>{});
@@ -2287,7 +2303,23 @@ async function loadWithTimeout(){
     }
   }
 }
-initApp();
+// Safe initApp call — agar Supabase JS load nahi hua to bhi login dikhao
+try{
+  if(typeof supabase !== 'undefined'){
+    initApp();
+  } else {
+    // Supabase CDN load nahi hua — seedha login dikhao
+    setTimeout(function(){
+      document.getElementById('ld').classList.add('gone');
+      stopLdMessages();
+      document.getElementById('login').classList.add('show');
+    },100);
+  }
+}catch(e){
+  console.error('initApp error:',e);
+  document.getElementById('ld').classList.add('gone');
+  document.getElementById('login').classList.add('show');
+}
 </script>
 </body>
 </html>
