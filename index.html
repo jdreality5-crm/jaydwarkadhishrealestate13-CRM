@@ -720,24 +720,32 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
 
 <!-- EDIT LEAD MODAL -->
 <div class="ov" id="edit-ov">
-  <div class="mo">
-    <div class="mh"><div class="mh-l"><div class="mh-ic">✏️</div><div><h3 id="edit-title">Edit Lead</h3><p id="edit-sub"></p></div></div><button class="mx" onclick="closeEdit()">✕</button></div>
-    <div class="mb">
-      <div class="fg">
-        <div class="fr"><label>Assign To</label><select id="e-assign"></select></div>
-        <div class="fr"><label>Status</label><select id="e-status" onchange="toggleDead()"><option>New</option><option>Active</option><option>Warm</option><option>Follow Up</option><option>Site Visit</option><option>Call Not Picked</option><option>Booking Done</option><option>Closed</option><option>Lost</option></select></div>
-      </div>
-      <div class="fg" id="dead-row" style="display:none">
-        <div class="fr"><label>Lost Reason</label><select id="e-dr"><option value="">— Select —</option><option>Configuration Issue</option><option>Budget Issue</option><option>Location Issue</option><option>Not Interested</option><option>Already Purchased</option><option>No Response</option></select></div>
-        <div class="fr"><label>Details</label><input type="text" id="e-ds"></div>
-      </div>
-      <div class="fg">
-        <div class="fr"><label>📅 Next Follow-up Date</label><input type="date" id="e-nd"></div>
-        <div class="fr"><label>⏰ Follow-up Time</label><input type="time" id="e-nt"></div>
-      </div>
-      <div class="fr"><label>Comment History</label><div class="clog" id="e-log"></div><textarea id="e-cmt" rows="3" placeholder="Add new comment..." style="width:100%;padding:10px 13px;border:1.5px solid var(--bd);border-radius:var(--rad3);font-size:13px;font-family:inherit;resize:vertical;outline:none;margin-top:9px;transition:var(--tr)" onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--bd)'"></textarea></div>
+  <div class="mo" style="max-width:640px">
+    <div class="mh" style="background:#f5f5f5;border-bottom:2px solid #ddd;padding:14px 20px;border-radius:20px 20px 0 0">
+      <div class="mh-l"><div><h3 id="edit-title" style="font-size:15px;font-weight:800;color:#222">Edit Lead</h3><p id="edit-sub" style="font-size:11px;color:#888;margin-top:2px"></p></div></div>
+      <button class="mx" onclick="closeEdit()" style="font-size:18px;background:none;border:none;cursor:pointer;color:#555">x</button>
     </div>
-    <div class="mf"><button class="btn btn-wa btn-sm" onclick="waReminder(editId)">💬 WhatsApp</button><button class="btn btn-gh" onclick="closeEdit()">Cancel</button><button class="btn btn-p" id="sv-btn" onclick="saveLead()">Update Lead</button></div>
+    <div class="mb" style="padding:20px 24px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+        <div><label style="font-size:12px;font-weight:700;color:#444;display:block;margin-bottom:5px">Assign To</label><select id="e-assign" style="width:100%;padding:9px 11px;border:1.5px solid #ccc;border-radius:6px;font-size:13px;font-family:inherit;background:#fff;outline:none"></select></div>
+        <div><label style="font-size:12px;font-weight:700;color:#444;display:block;margin-bottom:5px">Status <span style="color:red">*</span></label><select id="e-status" onchange="toggleDead()" style="width:100%;padding:9px 11px;border:1.5px solid #ccc;border-radius:6px;font-size:13px;font-family:inherit;background:#fff;outline:none"><option>New</option><option>Active</option><option>Warm</option><option>Follow Up</option><option>Site Visit</option><option>Call Not Picked</option><option>Booking Done</option><option>Closed</option><option>Lost</option></select></div>
+      </div>
+      <div id="dead-row" style="display:none;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+        <div><label style="font-size:12px;font-weight:700;color:#444;display:block;margin-bottom:5px">Dead Reason</label><select id="e-dr" style="width:100%;padding:9px 11px;border:1.5px solid #ccc;border-radius:6px;font-size:13px;font-family:inherit;background:#fff;outline:none"><option value="">-- Select --</option><option>Configuration Issue</option><option>Budget Issue</option><option>Location Issue</option><option>Not Interested</option><option>Already Purchased</option><option>No Response</option></select></div>
+        <div><label style="font-size:12px;font-weight:700;color:#444;display:block;margin-bottom:5px">Dead Sub Reason</label><input type="text" id="e-ds" placeholder="e.g. low budget" style="width:100%;padding:9px 11px;border:1.5px solid #ccc;border-radius:6px;font-size:13px;font-family:inherit;background:#fff;outline:none"></div>
+      </div>
+      <div style="margin-bottom:14px"><label style="font-size:12px;font-weight:700;color:#444;display:block;margin-bottom:5px">Next Call Date</label><input type="date" id="e-nd" style="width:100%;padding:9px 11px;border:1.5px solid #ccc;border-radius:6px;font-size:13px;font-family:inherit;background:#fff;outline:none"></div>
+      <div style="margin-bottom:6px">
+        <label style="font-size:12px;font-weight:700;color:#444;display:block;margin-bottom:6px">Comment</label>
+        <div id="e-log" style="font-size:12px;color:#333;line-height:2;margin-bottom:10px;max-height:200px;overflow-y:auto;background:#fafafa;border:1px solid #e0e0e0;border-radius:6px;padding:10px 14px"></div>
+        <textarea id="e-cmt" rows="3" placeholder="Add new comment..." style="width:100%;padding:10px 13px;border:1.5px solid #ccc;border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;outline:none;background:#fff"></textarea>
+      </div>
+    </div>
+    <div class="mf" style="padding:14px 24px;border-top:1px solid #ddd;background:#f9f9f9;display:flex;gap:8px;justify-content:flex-end;border-radius:0 0 20px 20px">
+      <button class="btn btn-wa btn-sm" onclick="waReminder(editId)">WhatsApp</button>
+      <button class="btn btn-gh" onclick="closeEdit()">Cancel</button>
+      <button class="btn btn-p" id="sv-btn" onclick="saveLead()">Update Lead</button>
+    </div>
   </div>
 </div>
 
@@ -1379,7 +1387,7 @@ function pg(name,el,silent=false){
 function renderDash(){
   const td=today();
   // FIX: agent ko sirf apni assigned leads dikhni chahiye, admin ko sab leads
-  const dashL=(CU&&CU.type!=='admin')?AL.filter(l=>l.assign===CU.email):AL;
+  const dashL=AL.filter(l=>l.assign===CU.email);
   const tot=dashL.length,act=dashL.filter(l=>l.status==='Active').length,cl=dashL.filter(l=>l.status==='Closed').length,ls=dashL.filter(l=>l.status==='Lost').length;
   const bk=dashL.filter(l=>l.status==='Booking Done').length;
   const ov=dashL.filter(l=>l.next_call&&l.next_call<td&&l.status!=='Closed'&&l.status!=='Lost'&&l.status!=='Booking Done').length;
