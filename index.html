@@ -105,7 +105,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 /* SIDEBAR - WHITE THEME */
 .sb{width:var(--sw);background:#fff;border-right:1px solid var(--bd);display:flex;flex-direction:column;position:fixed;inset-y:0;left:0;z-index:400;transition:transform .26s cubic-bezier(.4,0,.2,1);overflow-y:auto;box-shadow:2px 0 16px rgba(79,70,229,.06);}
 .sb::before{display:none;}
-.sb-head{padding:4px 10px 4px;border-bottom:1px solid var(--bd);background:#fff;}
+.sb-head{padding:0;border-bottom:1px solid var(--bd);background:#fff;line-height:0;}
 .sb-brand{display:flex;align-items:center;gap:11px;}
 .sb-bicon{width:38px;height:38px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
 .sb-bname{font-size:13px;font-weight:800;color:var(--dk);line-height:1.2;}
@@ -464,7 +464,7 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
 <div class="layout">
   <div class="sb-ov" id="sb-ov" onclick="closeSB()"></div>
   <div class="sb" id="sb">
-    <div class="sb-head"><div class="sb-brand" style="gap:0"><div class="sb-logo-wrap" style="width:100%;padding:2px 0;display:flex;justify-content:center"><img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/02/final-logo-01-1.png" style="width:100%;max-width:230px;max-height:130px;object-fit:contain;filter:brightness(1.05)" onerror="this.src='https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/03/logo1.png'" alt="Jay Dwarkadhish Real Estate"></div></div><div class="sb-btag" style="text-align:center;padding-top:1px;color:rgba(255,255,255,.28);font-size:9px;letter-spacing:1.5px">Real Estate CRM v10</div></div>
+    <div class="sb-head"><div class="sb-brand" style="gap:0"><div class="sb-logo-wrap" style="width:100%;padding:0;display:flex;justify-content:center;line-height:0"><img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/02/final-logo-01-1.png" style="width:100%;max-width:230px;max-height:130px;object-fit:contain;filter:brightness(1.05);display:block" onerror="this.src='https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/03/logo1.png'" alt="Jay Dwarkadhish Real Estate"></div></div></div>
     <div class="sb-user"><div class="sb-u" onclick="openProfile()"><div class="sb-av" id="sb-av"></div><div><div class="sb-un" id="sb-un">—</div><div class="sb-ur" id="sb-ur">—</div></div></div></div>
     <nav>
       <div class="nav-sec">Main</div>
@@ -720,15 +720,8 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
         <div class="fr"><label>📅 Next Follow-up Date</label><input type="date" id="n-nd"></div>
         <div class="fr"><label>⏰ Follow-up Time</label><input type="time" id="n-nt"></div>
       </div>
-      <div class="fr">
-        <label>🏠 Property Photo (optional)</label>
-        <div style="border:2px dashed var(--bd);border-radius:10px;padding:14px;text-align:center;cursor:pointer;background:var(--bg)" onclick="document.getElementById('n-img').click()">
-          <div style="font-size:24px;margin-bottom:4px">📸</div>
-          <div style="font-size:12px;font-weight:600;color:var(--tx3)">Click to upload</div>
-          <input type="file" id="n-img" accept="image/*" onchange="prevImg(this,'n-img-prev','new')" style="display:none">
-        </div>
-        <img id="n-img-prev" class="imgprev">
-      </div>
+      <input type="file" id="n-img" accept="image/*" onchange="prevImg(this,'n-img-prev','new')" style="display:none">
+      <img id="n-img-prev" class="imgprev" style="display:none">
       <div class="fr"><label>Initial Note</label><textarea id="n-cmt" rows="3" placeholder="Client requirement details..." style="width:100%;padding:10px 13px;border:1.5px solid var(--bd);border-radius:var(--rad3);font-size:13px;font-family:inherit;resize:vertical;outline:none"></textarea></div>
     </div>
     <div class="mf"><button class="btn btn-gh" onclick="closeNew()">Cancel</button><button class="btn btn-p" id="sv-new-btn" onclick="saveNew()">Add Enquiry</button></div>
@@ -1020,6 +1013,8 @@ async function dbSL(l){
       payload.property_image=''; // last resort: strip image
   }
   if(!payload.assign&&CU)payload.assign=CU.email;
+  // Remove property_image if empty to avoid column mismatch errors
+  if(!payload.property_image)delete payload.property_image;
   // Remove undefined/null keys that Supabase rejects
   Object.keys(payload).forEach(k=>{if(payload[k]===undefined)delete payload[k];});
   try{
@@ -1807,7 +1802,7 @@ async function saveNew(){
   const btn=document.getElementById('sv-new-btn');btn.disabled=true;btn.textContent='Saving...';
   const cmt=document.getElementById('n-cmt').value.trim();
   const assignTo=document.getElementById('n-ag').value||CU?.email||'';
-  const lead={id:uid(),name,phone,email:document.getElementById('n-em').value.trim(),source:document.getElementById('n-src').value,bhk:document.getElementById('n-bhk').value,budget:document.getElementById('n-bgt').value.trim(),area:document.getElementById('n-area').value.trim(),assign:assignTo,status:'New',dead_reason:'',dead_sub:'',next_call:document.getElementById('n-nd').value,next_time:document.getElementById('n-nt').value,property_image:newImgData,comments:cmt?[{by:CU.email,dt:ts(),text:cmt}]:[]};
+  const lead={id:uid(),name,phone,email:document.getElementById('n-em').value.trim(),source:document.getElementById('n-src').value,bhk:document.getElementById('n-bhk').value,budget:document.getElementById('n-bgt').value.trim(),area:document.getElementById('n-area').value.trim(),assign:assignTo,status:'New',dead_reason:'',dead_sub:'',next_call:document.getElementById('n-nd').value,next_time:document.getElementById('n-nt').value,comments:cmt?[{by:CU.email,dt:ts(),text:cmt}]:[]};
   const ok=await dbSL(lead);
   if(ok){AL=[lead,...AL];populateDDs();closeNew();renderEnq();renderDash();checkNotifs();}
   else{const errToast=document.createElement('div');errToast.style.cssText='position:fixed;bottom:80px;right:20px;background:#dc2626;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(220,38,38,.4)';errToast.textContent='❌ Error saving. Retry karo.';document.body.appendChild(errToast);setTimeout(()=>errToast.remove(),4000);}
