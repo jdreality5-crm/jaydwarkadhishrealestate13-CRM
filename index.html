@@ -1394,10 +1394,12 @@ function pg(name,el,silent=false){
 /* ---- DASHBOARD ---- */
 function renderDash(){
   const td=today();
-  // agent ko sirf apni assigned leads dikhni chahiye, admin ko sab leads
-  const dashL=CU.type==='admin'?AL:AL.filter(l=>l.assign===CU.email);
-  const tot=dashL.length,act=dashL.filter(l=>l.status==='Active').length,cl=dashL.filter(l=>l.status==='Closed').length,ls=dashL.filter(l=>l.status==='Lost').length;
-  const bk=dashL.filter(l=>l.status==='Booking Done').length;
+  // Stat cards: hamesha apni khud ki assigned leads (admin ho ya agent)
+  const dashL=AL.filter(l=>l.assign===CU.email);
+  // Inquiries table: agent ko apni leads, admin ko sabki leads
+  const inqL=CU.type==='admin'?AL:dashL;
+  const tot=inqL.length,act=dashL.filter(l=>l.status==='Active').length,cl=inqL.filter(l=>l.status==='Closed').length,ls=inqL.filter(l=>l.status==='Lost').length;
+  const bk=inqL.filter(l=>l.status==='Booking Done').length;
   const ov=dashL.filter(l=>l.next_call&&l.next_call<td&&l.status!=='Closed'&&l.status!=='Lost'&&l.status!=='Booking Done').length;
   const tfu=dashL.filter(l=>l.next_call===td&&l.status!=='Closed'&&l.status!=='Lost').length;
   document.getElementById('dash-date-sub').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -1416,7 +1418,7 @@ function renderDash(){
   // Show only this agent's inquiries (admin sees all), sorted by newest first
   // FIX: use created_at (Supabase timestamp) as primary sort, fallback to id
   // Lost leads dashboard inquiries mein nahi dikhni chahiye
-  const sorted=[...dashL].filter(l=>l.status!=='Lost').sort((a,b)=>{
+  const sorted=[...inqL].filter(l=>l.status!=='Lost').sort((a,b)=>{
     const ta=b.created_at||b.created||b.id||'';
     const tb2=a.created_at||a.created||a.id||'';
     return ta.localeCompare(tb2);
