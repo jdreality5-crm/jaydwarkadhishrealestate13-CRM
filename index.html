@@ -1394,8 +1394,8 @@ function pg(name,el,silent=false){
 /* ---- DASHBOARD ---- */
 function renderDash(){
   const td=today();
-  // FIX: agent ko sirf apni assigned leads dikhni chahiye, admin ko sab leads
-  const dashL=AL.filter(l=>l.assign===CU.email);
+  // agent ko sirf apni assigned leads dikhni chahiye, admin ko sab leads
+  const dashL=CU.type==='admin'?AL:AL.filter(l=>l.assign===CU.email);
   const tot=dashL.length,act=dashL.filter(l=>l.status==='Active').length,cl=dashL.filter(l=>l.status==='Closed').length,ls=dashL.filter(l=>l.status==='Lost').length;
   const bk=dashL.filter(l=>l.status==='Booking Done').length;
   const ov=dashL.filter(l=>l.next_call&&l.next_call<td&&l.status!=='Closed'&&l.status!=='Lost'&&l.status!=='Booking Done').length;
